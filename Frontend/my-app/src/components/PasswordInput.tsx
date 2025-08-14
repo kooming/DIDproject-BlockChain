@@ -43,6 +43,7 @@ const PasswordInput = ({ id, label, placeholder }) => {
       </div>
     </div>
   );
-};
+  
+  
 
 export default PasswordInput;
