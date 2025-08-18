@@ -35,6 +35,12 @@ export default function AdminHomePage() {
         >
           로그인
         </button>
+        <a
+          href="./signup"
+          className="no-underline transform hover:scale-105 transition-transform duration-300 text-inherit"
+        >
+          회원가입
+        </a>
       </div>
     </div>
   );
