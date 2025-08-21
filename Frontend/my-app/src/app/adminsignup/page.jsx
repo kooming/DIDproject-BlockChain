@@ -13,32 +13,56 @@ export default function AdminSignUpPage() {
   const adminInputPW = useInput("");
   const adminPWConfirm = useInput("");
   const adminName = useInput("");
+  const adminCompany = useInput("");
+  const adminPhoneNumber = useInput("");
+
   const router = useRouter();
 
   // 2. 유효성 검사 및 중복 확인 상태 관리
   const [idError, setIdError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [passwordConfirmError, setPasswordConfirmError] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [companyError, setCompanyError] = useState("");
+  const [PhoneNumberError, setPhoneNumberError] = useState("");
   const [duplicateCheck, setDuplicateCheck] = useState(false);
 
-  // 영문, 숫자, 특수문자를 각각 최소 1개씩 포함하며, 전체 길이는 8자 이상
+  // 정규식들
   const passwordRegex =
     /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+  const idRegex = /^[a-zA-Z0-9]+$/;
+  const nameRegex = /^[a-zA-Z가-힣]+$/;
+  const companyRegex = /^[가-힣a-zA-Z0-9\s()&.-]+$/;
+  const numRegex = /^[0-9]+$/;
+  // 할당
+  const adminIdValue = adminInputID.value;
+  const admminPWValue = adminInputPW.value;
+  const adminPWConfirmValue = adminPWConfirm.value;
+  const adminNameValue = adminName.value;
+  const adminCompanyValue = adminCompany.value;
+  const adminPhoneNumberValue = adminPhoneNumber.value;
 
   // 5. 중복 확인 함수 (로컬스토리지 시뮬레이션)
   const handleDuplicateCheck = () => {
-    if (!adminId) {
+    setIdError("");
+
+    if (!adminIdValue) {
       setIdError("아이디를 입력해주세요.");
       setDuplicateCheck(false);
       return;
     }
-
     const users = JSON.parse(localStorage.getItem("users") || "[]");
-    const isDuplicate = users.some((user) => user.adminId === adminId);
+    const isDuplicate = users.some(
+      (user) => user.adminIdValue === adminIdValue
+    );
 
     if (isDuplicate) {
       setIdError("이미 존재하는 아이디입니다.");
       setDuplicateCheck(false);
+    }
+    if (!idRegex.test(adminIdValue)) {
+      console.log(`${adminIdValue}입니다`);
+      setIdError("영어와 숫자만 입력해주십시오");
     } else {
       setIdError("");
       setDuplicateCheck(true);
@@ -48,29 +72,53 @@ export default function AdminSignUpPage() {
 
   // 6. 회원가입 버튼 클릭 핸들러
   const handleSignUp = () => {
+    // 에러 메세지 초기화
+    setPasswordError("");
+    setPasswordConfirmError("");
+    setNameError("");
+    setCompanyError("");
+    setPhoneNumberError("");
+
     // 6-1. 유효성 검사
     let isValid = true;
-    if (!adminId || !duplicateCheck) {
+    if (!adminIdValue || !duplicateCheck) {
       setIdError("아이디 중복 확인이 필요합니다.");
       isValid = false;
     }
-    if (!passwordRegex.test(password)) {
+
+    if (!passwordRegex.test(admminPWValue)) {
       setPasswordError("영문, 숫자, 특수문자를 포함한 8자 이상이어야 합니다.");
       isValid = false;
     }
-    if (password !== passwordConfirm) {
+    if (admminPWValue !== adminPWConfirmValue) {
       setPasswordConfirmError("비밀번호가 일치하지 않습니다.");
       isValid = false;
     }
-
+    if (!nameRegex.test(adminNameValue)) {
+      setNameError("입력란에는 한글만 가능합니다.");
+      isValid = false;
+    }
+    if (!numRegex.test(adminPhoneNumberValue)) {
+      setPhoneNumberError("입력란에는 숫자만 가능합니다.");
+      isValid = false;
+    }
+    if (!companyRegex.test(adminCompanyValue)) {
+      setCompanyError(
+        "기업명은 한글, 영문, 숫자, 공백, 그리고 일부 특수문자(&, -, ., ())만 입력할 수 있습니다."
+      );
+      isValid = false;
+    }
     if (!isValid) {
       return;
     }
 
     // 6-2. 로컬스토리지에 데이터 저장
     const newUser = {
-      id: adminInputID.value,
-      password,
+      adminIdValue,
+      admminPWValue,
+      adminNameValue,
+      adminCompanyValue,
+      adminPhoneNumberValue,
     };
     const users = JSON.parse(localStorage.getItem("users") || "[]");
     users.push(newUser);
@@ -78,11 +126,6 @@ export default function AdminSignUpPage() {
 
     alert("회원가입이 완료되었습니다.");
 
-    // 6-3. 입력 필드 초기화
-    setAdminId("");
-    setPassword("");
-    setPasswordConfirm("");
-    setDuplicateCheck(false);
     router.push("./adminmain");
   };
 
@@ -131,34 +174,23 @@ export default function AdminSignUpPage() {
           icon={faUser}
           placeholder="이름을 입력하세요"
           {...adminName}
-          error={idError}
+          error={nameError}
         />
         <InputWithIcon
-          id="admin_id"
+          id="admin_company"
           label="기업명 *"
           icon={faUser}
           placeholder="기업을 입력해주세요"
-          value={adminId}
-          onChange={handleAdminIdChange}
-          error={idError}
+          {...adminCompany}
+          error={companyError}
         />
         <InputWithIcon
-          id="admin_id"
-          label="관리자 아이디 *"
+          id="admin_PhoneNumber"
+          label="전화번호 *"
           icon={faUser}
-          placeholder="아이디를 입력하세요"
-          value={adminId}
-          onChange={handleAdminIdChange}
-          error={idError}
-        />
-        <InputWithIcon
-          id="admin_id"
-          label="관리자 아이디 *"
-          icon={faUser}
-          placeholder="아이디를 입력하세요"
-          value={adminId}
-          onChange={handleAdminIdChange}
-          error={idError}
+          placeholder="전화번호는 (-) 없이 입력해 주세요."
+          {...adminPhoneNumber}
+          error={PhoneNumberError}
         />
 
         <div className="flex justify-center">
