@@ -3,7 +3,12 @@
 import React, { useState } from "react";
 import PasswordInput from "../../components/PasswordInput.jsx";
 import InputWithIcon from "../../components/InputWithIcon.jsx";
-import { faUser } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBuilding,
+  faPhone,
+  faSignature,
+  faUser,
+} from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
 import useInput from "../hooks/useInput.jsx";
 
@@ -51,18 +56,17 @@ export default function AdminSignUpPage() {
       setDuplicateCheck(false);
       return;
     }
+    if (!idRegex.test(adminIdValue)) {
+      setIdError("영어와 숫자만 입력해주십시오");
+    }
+
     const users = JSON.parse(localStorage.getItem("users") || "[]");
     const isDuplicate = users.some(
       (user) => user.adminIdValue === adminIdValue
     );
-
     if (isDuplicate) {
       setIdError("이미 존재하는 아이디입니다.");
       setDuplicateCheck(false);
-    }
-    if (!idRegex.test(adminIdValue)) {
-      console.log(`${adminIdValue}입니다`);
-      setIdError("영어와 숫자만 입력해주십시오");
     } else {
       setIdError("");
       setDuplicateCheck(true);
@@ -90,7 +94,10 @@ export default function AdminSignUpPage() {
       setPasswordError("영문, 숫자, 특수문자를 포함한 8자 이상이어야 합니다.");
       isValid = false;
     }
-    if (admminPWValue !== adminPWConfirmValue) {
+    if (!adminPWConfirm.value) {
+      setPasswordConfirmError("비밀번호를 다시 입력해주세요.");
+      isValid = false;
+    } else if (admminPWValue !== adminPWConfirmValue) {
       setPasswordConfirmError("비밀번호가 일치하지 않습니다.");
       isValid = false;
     }
@@ -171,7 +178,7 @@ export default function AdminSignUpPage() {
         <InputWithIcon
           id="admin_id"
           label="관리자 이름 *"
-          icon={faUser}
+          icon={faSignature}
           placeholder="이름을 입력하세요"
           {...adminName}
           error={nameError}
@@ -179,7 +186,7 @@ export default function AdminSignUpPage() {
         <InputWithIcon
           id="admin_company"
           label="기업명 *"
-          icon={faUser}
+          icon={faBuilding}
           placeholder="기업을 입력해주세요"
           {...adminCompany}
           error={companyError}
@@ -187,7 +194,7 @@ export default function AdminSignUpPage() {
         <InputWithIcon
           id="admin_PhoneNumber"
           label="전화번호 *"
-          icon={faUser}
+          icon={faPhone}
           placeholder="전화번호는 (-) 없이 입력해 주세요."
           {...adminPhoneNumber}
           error={PhoneNumberError}

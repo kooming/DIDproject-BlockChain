@@ -1,80 +1,140 @@
 "use client";
 
 import React, { useState } from "react";
-// 상대 경로로 변경하여 import 경로 오류 해결
-import PasswordInput from "../../components/PasswordInput.jsx";
-import InputWithIcon from "../../components/InputWithIcon.jsx";
-import { faUser } from "@fortawesome/free-solid-svg-icons";
+import { useRouter } from "next/navigation";
 
-export default function AdminHomePage() {
-  // 상태 관리를 위한 useState 훅
-  const [adminId, setAdminId] = useState("");
-  const [password, setPassword] = useState("");
+export default function AdminDashboard() {
+  // 관리자 역할을 'super'로 초기 설정합니다.
+  // 이 부분을 'general'로 바꾸면 초기 화면이 달라집니다.
+  // 실제 앱에서는 로그인 시 받은 사용자 데이터에 따라 이 값을 설정해야 합니다.
+  const [userRole, setUserRole] = useState("super");
 
-  // 입력 필드 값 변경 핸들러
-  const handleAdminIdChange = (e) => {
-    setAdminId(e.target.value);
-  };
+  const router = useRouter();
 
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-  };
-
-  // 로그인 버튼 클릭 핸들러
-  const handleLogin = () => {
-    // 로컬스토리지에서 사용자 데이터 가져오기
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    const user = users.find(
-      (user) => user.adminId === adminId && user.password === password
+  // 역할에 따라 다른 버튼들을 렌더링합니다.
+  const renderDashboardButtons = () => {
+    // 공통 기능: 수료증 신청
+    const commonButtons = (
+      <div className="bg-white p-6 rounded-xl shadow-md transition-transform transform hover:scale-105">
+        <h3 className="text-xl font-semibold text-gray-800">수료증 신청</h3>
+        <p className="mt-2 text-gray-600">
+          학생들의 수료증 발급 신청 목록을 확인하고 승인/거절할 수 있습니다.
+        </p>
+        <button
+          onClick={() => alert("수료증 신청 페이지로 이동합니다.")}
+          className="mt-4 w-full p-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition"
+        >
+          바로가기
+        </button>
+      </div>
     );
 
-    if (user) {
-      alert("로그인 성공!");
-      // TODO: 로그인 성공 후 페이지 이동 로직 추가
-    } else {
-      alert("아이디 또는 비밀번호가 올바르지 않습니다.");
+    // 역할에 따른 조건부 렌더링
+    switch (userRole) {
+      case "super":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {commonButtons}
+            <div className="bg-white p-6 rounded-xl shadow-md transition-transform transform hover:scale-105">
+              <h3 className="text-xl font-semibold text-gray-800">
+                모든 관리자가 승인한 수료증 조회
+              </h3>
+              <p className="mt-2 text-gray-600">
+                전체 관리자가 승인한 수료증 목록을 통합하여 조회할 수 있습니다.
+              </p>
+              <button
+                onClick={() => alert("전체 수료증 조회 페이지로 이동합니다.")}
+                className="mt-4 w-full p-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition"
+              >
+                바로가기
+              </button>
+            </div>
+            <div className="bg-white p-6 rounded-xl shadow-md transition-transform transform hover:scale-105">
+              <h3 className="text-xl font-semibold text-gray-800">
+                관리자 회원가입 신청
+              </h3>
+              <p className="mt-2 text-gray-600">
+                새로운 관리자의 회원가입 신청을 승인하거나 거절할 수 있습니다.
+              </p>
+              <button
+                onClick={() =>
+                  alert("관리자 회원가입 신청 페이지로 이동합니다.")
+                }
+                className="mt-4 w-full p-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition"
+              >
+                바로가기
+              </button>
+            </div>
+          </div>
+        );
+      case "general":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {commonButtons}
+            <div className="bg-white p-6 rounded-xl shadow-md transition-transform transform hover:scale-105">
+              <h3 className="text-xl font-semibold text-gray-800">
+                내가 승인한 수료증 조회
+              </h3>
+              <p className="mt-2 text-gray-600">
+                본인이 직접 승인한 수료증 목록만 조회할 수 있습니다.
+              </p>
+              <button
+                onClick={() =>
+                  alert("내가 승인한 수료증 조회 페이지로 이동합니다.")
+                }
+                className="mt-4 w-full p-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition"
+              >
+                바로가기
+              </button>
+            </div>
+          </div>
+        );
+      default:
+        return (
+          <p className="text-center text-red-500">
+            관리자 역할을 확인할 수 없습니다.
+          </p>
+        );
     }
   };
 
   return (
     <div className="container mx-auto p-8 bg-gray-50 min-h-screen">
       <div className="rounded-xl shadow-lg p-8">
+        {/* 역할에 따른 제목 */}
         <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-2">
-          관리자 로그인
+          {userRole === "super" ? "슈퍼관리자 대시보드" : "일반관리자 대시보드"}
         </h1>
-        <h3 className="text-center">DID 수료증 관리 시스템</h3>
-        <InputWithIcon
-          id="admin_id"
-          label="관리자 아이디"
-          icon={faUser}
-          placeholder=" 아이디를 입력하세요"
-          value={adminId}
-          onChange={handleAdminIdChange}
-        />
+        <h3 className="text-center text-gray-600 mb-8">
+          DID 수료증 관리 시스템
+        </h3>
 
-        <PasswordInput
-          id="password"
-          label="비밀번호"
-          placeholder="8자 이상의 비밀번호를 입력하세요"
-          value={password}
-          onChange={handlePasswordChange}
-        />
-
-        <div className="flex justify-center ">
+        {/* 역할 전환 버튼 (개발용) */}
+        <div className="flex justify-center space-x-4 mb-8">
           <button
-            onClick={handleLogin} // onClick 핸들러 추가
-            type="submit"
-            className="mt-6 w-50 p-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition"
+            onClick={() => setUserRole("super")}
+            className={`px-6 py-2 rounded-lg font-bold transition ${
+              userRole === "super"
+                ? "bg-indigo-600 text-white"
+                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+            }`}
           >
-            로그인
+            슈퍼관리자
+          </button>
+          <button
+            onClick={() => setUserRole("general")}
+            className={`px-6 py-2 rounded-lg font-bold transition ${
+              userRole === "general"
+                ? "bg-indigo-600 text-white"
+                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+            }`}
+          >
+            일반관리자
           </button>
         </div>
-        <a
-          href="./adminsignup"
-          className="no-underline transform hover:scale-105 transition-transform duration-300 text-inherit"
-        >
-          회원가입
-        </a>
+
+        {/* 대시보드 기능 버튼들 */}
+        {renderDashboardButtons()}
       </div>
     </div>
   );
