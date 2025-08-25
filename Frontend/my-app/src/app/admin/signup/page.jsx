@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import PasswordInput from "../../components/PasswordInput.jsx";
-import InputWithIcon from "../../components/InputWithIcon.jsx";
+import PasswordInput from "../../../components/PasswordInput.jsx";
+import InputWithIcon from "../../../components/InputWithIcon.jsx";
 import {
   faBuilding,
   faPhone,
@@ -10,10 +10,9 @@ import {
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
-import useInput from "../hooks/useInput.jsx";
+import useInput from "../../hooks/useInput.jsx";
 
 export default function AdminSignUpPage() {
-  // 1. input 상태 관리
   const adminInputID = useInput("");
   const adminInputPW = useInput("");
   const adminPWConfirm = useInput("");
@@ -23,117 +22,130 @@ export default function AdminSignUpPage() {
 
   const router = useRouter();
 
-  // 2. 유효성 검사 및 중복 확인 상태 관리
   const [idError, setIdError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [passwordConfirmError, setPasswordConfirmError] = useState("");
   const [nameError, setNameError] = useState("");
   const [companyError, setCompanyError] = useState("");
-  const [PhoneNumberError, setPhoneNumberError] = useState("");
+  const [phoneNumberError, setPhoneNumberError] = useState("");
   const [duplicateCheck, setDuplicateCheck] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  // 정규식들
   const passwordRegex =
     /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
   const idRegex = /^[a-zA-Z0-9]+$/;
   const nameRegex = /^[a-zA-Z가-힣]+$/;
   const companyRegex = /^[가-힣a-zA-Z0-9\s()&.-]+$/;
   const numRegex = /^[0-9]+$/;
-  // 할당
-  const adminIdValue = adminInputID.value;
-  const admminPWValue = adminInputPW.value;
-  const adminPWConfirmValue = adminPWConfirm.value;
-  const adminNameValue = adminName.value;
-  const adminCompanyValue = adminCompany.value;
-  const adminPhoneNumberValue = adminPhoneNumber.value;
 
-  // 5. 중복 확인 함수 (로컬스토리지 시뮬레이션)
   const handleDuplicateCheck = () => {
     setIdError("");
+    setSuccessMessage("");
+    setDuplicateCheck(false);
 
+    const adminIdValue = adminInputID.value;
     if (!adminIdValue) {
       setIdError("아이디를 입력해주세요.");
-      setDuplicateCheck(false);
       return;
     }
+
     if (!idRegex.test(adminIdValue)) {
-      setIdError("영어와 숫자만 입력해주십시오");
+      setIdError("영어와 숫자만 입력해주십시오.");
+      return;
     }
 
+    // 로컬스토리지에 있는 users와 pendingUsers 모두에서 중복 확인
     const users = JSON.parse(localStorage.getItem("users") || "[]");
-    const isDuplicate = users.some(
-      (user) => user.adminIdValue === adminIdValue
+    const pendingUsers = JSON.parse(
+      localStorage.getItem("pendingUsers") || "[]"
     );
+    const isDuplicate =
+      users.some((user) => user.adminIdValue === adminIdValue) ||
+      pendingUsers.some((user) => user.adminIdValue === adminIdValue);
+
     if (isDuplicate) {
       setIdError("이미 존재하는 아이디입니다.");
-      setDuplicateCheck(false);
     } else {
-      setIdError("");
+      setSuccessMessage("사용 가능한 아이디입니다.");
       setDuplicateCheck(true);
-      alert("사용 가능한 아이디입니다.");
     }
   };
 
-  // 6. 회원가입 버튼 클릭 핸들러
   const handleSignUp = () => {
-    // 에러 메세지 초기화
+    // 모든 에러 메시지 초기화
+    setIdError("");
     setPasswordError("");
     setPasswordConfirmError("");
     setNameError("");
     setCompanyError("");
     setPhoneNumberError("");
 
-    // 6-1. 유효성 검사
+    // 유효성 검사
     let isValid = true;
+    const adminIdValue = adminInputID.value;
+    const adminPWValue = adminInputPW.value;
+    const adminPWConfirmValue = adminPWConfirm.value;
+    const adminNameValue = adminName.value;
+    const adminCompanyValue = adminCompany.value;
+    const adminPhoneNumberValue = adminPhoneNumber.value;
+
     if (!adminIdValue || !duplicateCheck) {
-      setIdError("아이디 중복 확인이 필요합니다.");
+      setIdError("아이디를 입력하고 중복 확인을 해주세요.");
       isValid = false;
     }
 
-    if (!passwordRegex.test(admminPWValue)) {
+    if (!passwordRegex.test(adminPWValue)) {
       setPasswordError("영문, 숫자, 특수문자를 포함한 8자 이상이어야 합니다.");
       isValid = false;
     }
-    if (!adminPWConfirm.value) {
-      setPasswordConfirmError("비밀번호를 다시 입력해주세요.");
+
+    if (!adminPWConfirmValue) {
+      setPasswordConfirmError("비밀번호 확인을 입력해주세요.");
       isValid = false;
-    } else if (admminPWValue !== adminPWConfirmValue) {
+    } else if (adminPWValue !== adminPWConfirmValue) {
       setPasswordConfirmError("비밀번호가 일치하지 않습니다.");
       isValid = false;
     }
+
     if (!nameRegex.test(adminNameValue)) {
-      setNameError("입력란에는 한글만 가능합니다.");
+      setNameError("이름에는 한글만 입력 가능합니다.");
       isValid = false;
     }
-    if (!numRegex.test(adminPhoneNumberValue)) {
-      setPhoneNumberError("입력란에는 숫자만 가능합니다.");
-      isValid = false;
-    }
+
     if (!companyRegex.test(adminCompanyValue)) {
       setCompanyError(
-        "기업명은 한글, 영문, 숫자, 공백, 그리고 일부 특수문자(&, -, ., ())만 입력할 수 있습니다."
+        "기업명은 한글, 영문, 숫자, 공백, 일부 특수문자(&, -, ., ())만 가능합니다."
       );
       isValid = false;
     }
+
+    if (!numRegex.test(adminPhoneNumberValue)) {
+      setPhoneNumberError("전화번호는 숫자만 입력 가능합니다.");
+      isValid = false;
+    }
+
     if (!isValid) {
       return;
     }
 
-    // 6-2. 로컬스토리지에 데이터 저장
-    const newUser = {
+    // 로컬스토리지에 대기 중인 데이터로 저장
+    const newPendingUser = {
       adminIdValue,
-      admminPWValue,
+      adminPWValue,
       adminNameValue,
       adminCompanyValue,
       adminPhoneNumberValue,
+      grade: 0, // '신청 대기' 상태를 의미하는 grade 0으로 설정
     };
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    users.push(newUser);
-    localStorage.setItem("users", JSON.stringify(users));
 
-    alert("회원가입이 완료되었습니다.");
+    const pendingUsers = JSON.parse(
+      localStorage.getItem("pendingUsers") || "[]"
+    );
+    pendingUsers.push(newPendingUser);
+    localStorage.setItem("pendingUsers", JSON.stringify(pendingUsers));
 
-    router.push("./adminmain");
+    alert("회원가입 신청이 완료되었습니다. 승인 대기 중입니다.");
+    router.push("/admin"); // 신청 후 로그인 페이지로 리디렉션
   };
 
   return (
@@ -144,21 +156,25 @@ export default function AdminSignUpPage() {
         </h1>
         <h3 className="text-center mb-5">DID 수료증 관리 시스템</h3>
 
-        <button
-          onClick={handleDuplicateCheck}
-          className=" ml-330 px-4 py-2 bg-gray-200 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-300 transition"
-        >
-          중복확인
-        </button>
-
-        <InputWithIcon
-          id="admin_id"
-          label="관리자 아이디 *"
-          icon={faUser}
-          placeholder="아이디를 입력하세요"
-          {...adminInputID}
-          error={idError}
-        />
+        <div className="relative">
+          <InputWithIcon
+            id="admin_id"
+            label="관리자 아이디 *"
+            icon={faUser}
+            placeholder="아이디를 입력하세요"
+            {...adminInputID}
+            error={idError}
+          />
+          <button
+            onClick={handleDuplicateCheck}
+            className="absolute top-1/2 transform -translate-y-1/2 right-0 mt-2 px-4 py-2 bg-gray-200 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-300 transition"
+          >
+            중복확인
+          </button>
+        </div>
+        {successMessage && (
+          <p className="text-green-500 text-sm mt-1 mb-4">{successMessage}</p>
+        )}
 
         <PasswordInput
           id="password"
@@ -176,7 +192,7 @@ export default function AdminSignUpPage() {
           error={passwordConfirmError}
         />
         <InputWithIcon
-          id="admin_id"
+          id="admin_name"
           label="관리자 이름 *"
           icon={faSignature}
           placeholder="이름을 입력하세요"
@@ -197,15 +213,15 @@ export default function AdminSignUpPage() {
           icon={faPhone}
           placeholder="전화번호는 (-) 없이 입력해 주세요."
           {...adminPhoneNumber}
-          error={PhoneNumberError}
+          error={phoneNumberError}
         />
 
-        <div className="flex justify-center">
+        <div className="flex justify-center mt-6">
           <button
             onClick={handleSignUp}
-            className="mt-6 w-full p-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition text-center"
+            className="w-full p-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition text-center"
           >
-            회원가입
+            회원가입 신청
           </button>
         </div>
       </div>

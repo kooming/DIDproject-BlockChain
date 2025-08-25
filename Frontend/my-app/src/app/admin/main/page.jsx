@@ -1,19 +1,51 @@
 "use client";
 
-import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
 
 export default function AdminDashboard() {
-  // 관리자 역할을 'super'로 초기 설정합니다.
-  // 이 부분을 'general'로 바꾸면 초기 화면이 달라집니다.
-  // 실제 앱에서는 로그인 시 받은 사용자 데이터에 따라 이 값을 설정해야 합니다.
-  const [userRole, setUserRole] = useState("super");
-
   const router = useRouter();
+  const [userRole, setUserRole] = useState(null);
+
+  // 컴포넌트가 처음 렌더링될 때 로컬스토리지에서 사용자 정보를 확인합니다.
+  useEffect(() => {
+    try {
+      // 로컬스토리지에서 로그인된 사용자의 ID를 가져옵니다.
+      const loggedInUserId = localStorage.getItem("adminId");
+      const storedUsers = localStorage.getItem("users");
+
+      if (loggedInUserId && storedUsers) {
+        const users = JSON.parse(storedUsers);
+        // 로그인된 사용자의 ID와 일치하는 사용자를 찾습니다.
+        const currentUser = users.find(
+          (user) => user.adminIdValue === loggedInUserId
+        );
+
+        if (currentUser) {
+          if (currentUser.grade === 1) {
+            setUserRole("super");
+          } else {
+            setUserRole("general");
+          }
+        } else {
+          // loginId는 있지만 users 배열에 없는 경우
+          setUserRole(null);
+          console.error("로그인된 사용자 정보가 users 배열에 없습니다.");
+        }
+      } else {
+        // 로그인 ID가 없거나 users 데이터가 없는 경우
+        setUserRole(null);
+        console.warn("로그인 정보가 없거나 users 데이터가 없습니다.");
+      }
+    } catch (e) {
+      console.error("로컬스토리지 접근 실패:", e);
+      setUserRole(null);
+    }
+  }, []);
 
   // 역할에 따라 다른 버튼들을 렌더링합니다.
   const renderDashboardButtons = () => {
-    // 공통 기능: 수료증 신청
+    // 모든 역할에 공통으로 필요한 '수료증 신청' 기능
     const commonButtons = (
       <div className="bg-white p-6 rounded-xl shadow-md transition-transform transform hover:scale-105">
         <h3 className="text-xl font-semibold text-gray-800">수료증 신청</h3>
@@ -57,9 +89,7 @@ export default function AdminDashboard() {
                 새로운 관리자의 회원가입 신청을 승인하거나 거절할 수 있습니다.
               </p>
               <button
-                onClick={() =>
-                  alert("관리자 회원가입 신청 페이지로 이동합니다.")
-                }
+                onClick={() => router.push("./requests")}
                 className="mt-4 w-full p-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition"
               >
                 바로가기
@@ -90,9 +120,10 @@ export default function AdminDashboard() {
           </div>
         );
       default:
+        // userRole이 null이거나 알 수 없는 경우 로딩 메시지 또는 에러 메시지를 표시합니다.
         return (
-          <p className="text-center text-red-500">
-            관리자 역할을 확인할 수 없습니다.
+          <p className="text-center text-gray-500">
+            권한 정보를 불러오는 중입니다...
           </p>
         );
     }
@@ -101,37 +132,16 @@ export default function AdminDashboard() {
   return (
     <div className="container mx-auto p-8 bg-gray-50 min-h-screen">
       <div className="rounded-xl shadow-lg p-8">
-        {/* 역할에 따른 제목 */}
         <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-2">
-          {userRole === "super" ? "슈퍼관리자 대시보드" : "일반관리자 대시보드"}
+          {userRole === "super"
+            ? "슈퍼관리자 대시보드"
+            : userRole === "general"
+            ? "일반관리자 대시보드"
+            : "관리자 대시보드"}
         </h1>
         <h3 className="text-center text-gray-600 mb-8">
           DID 수료증 관리 시스템
         </h3>
-
-        {/* 역할 전환 버튼 (개발용) */}
-        <div className="flex justify-center space-x-4 mb-8">
-          <button
-            onClick={() => setUserRole("super")}
-            className={`px-6 py-2 rounded-lg font-bold transition ${
-              userRole === "super"
-                ? "bg-indigo-600 text-white"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-            }`}
-          >
-            슈퍼관리자
-          </button>
-          <button
-            onClick={() => setUserRole("general")}
-            className={`px-6 py-2 rounded-lg font-bold transition ${
-              userRole === "general"
-                ? "bg-indigo-600 text-white"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-            }`}
-          >
-            일반관리자
-          </button>
-        </div>
 
         {/* 대시보드 기능 버튼들 */}
         {renderDashboardButtons()}

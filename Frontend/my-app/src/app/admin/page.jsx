@@ -28,11 +28,12 @@ export default function AdminHomePage() {
     // 로컬스토리지에서 사용자 데이터 가져오기
     const users = JSON.parse(localStorage.getItem("users") || "[]");
     const user = users.find(
-      (user) => user.adminIdValue === adminId && user.admminPWValue === password
+      (user) => user.adminIdValue === adminId && user.adminPWValue === password
     );
 
     if (user) {
-      router.push("./adminmain");
+      localStorage.setItem("adminId", adminId);
+      router.push("./admin/main");
     } else {
       alert("아이디 또는 비밀번호가 올바르지 않습니다.");
     }
@@ -72,7 +73,7 @@ export default function AdminHomePage() {
           </button>
         </div>
         <a
-          href="./adminsignup"
+          href="./admin/signup"
           className="no-underline transform hover:scale-105 transition-transform duration-300 text-inherit"
         >
           회원가입
