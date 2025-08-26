@@ -12,6 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import useInput from "../../hooks/useInput.jsx";
 import useAuth from "../../hooks/useAuth.jsx";
+import ReusableAlert from "@/src/components/ReusableAlert.js";
 
 export default function AdminSignUpPage() {
   const adminInputID = useInput("");
@@ -31,6 +32,7 @@ export default function AdminSignUpPage() {
   const [phoneNumberError, setPhoneNumberError] = useState("");
   const [duplicateCheck, setDuplicateCheck] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [alert, setAlert] = useState("");
 
   const passwordRegex =
     /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
@@ -146,12 +148,23 @@ export default function AdminSignUpPage() {
     pendingUsers.push(newPendingUser);
     localStorage.setItem("pendingUsers", JSON.stringify(pendingUsers));
 
-    alert("회원가입 신청이 완료되었습니다. 승인 대기 중입니다.");
-    router.push("/admin"); // 신청 후 로그인 페이지로 리디렉션
+    setAlert({
+      message:
+        "회원가입 신청이 완료되었습니다. 관리자의 승인 후에 서비스를 이용하실 수 있습니다.",
+      type: "success",
+    });
+    setTimeout(() => {
+      setAlert({ message: "", type: "" });
+      router.push("/admin"); // 신청 후 로그인 페이지로 리디렉션
+    }, 3000);
   };
-
   return (
     <div className="container mx-auto p-8 bg-gray-50 min-h-screen">
+      <ReusableAlert
+        message={alert.message}
+        type={alert.type}
+        onClose={() => setAlert({ message: "", type: "" })}
+      />
       <div className="rounded-xl shadow-lg p-8">
         <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-2">
           관리자 회원가입

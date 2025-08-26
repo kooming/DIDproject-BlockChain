@@ -85,7 +85,7 @@ export default function AdminHomePage() {
         localStorage.setItem("loginId", adminId);
         setTimeout(() => {
           router.push("/admin/main");
-        }, 1500);
+        }, 500);
       } else {
         setAlert({ message: "비밀번호가 일치하지 않습니다.", type: "error" });
         setTimeout(() => setAlert({ message: "", type: "" }), 3000);
@@ -102,21 +102,6 @@ export default function AdminHomePage() {
 
   return (
     <div className="container mx-auto p-8 bg-gray-50 min-h-screen">
-      <style>{`
-        .animate-fade-in-down {
-          animation: fadeInDown 0.5s ease-out;
-        }
-        @keyframes fadeInDown {
-          from {
-            opacity: 0;
-            transform: translate(-50%, -20px);
-          }
-          to {
-            opacity: 1;
-            transform: translate(-50%, 0);
-          }
-        }
-      `}</style>
       <ReusableAlert
         message={alert.message}
         type={alert.type}
@@ -143,6 +128,7 @@ export default function AdminHomePage() {
           placeholder="8자 이상의 비밀번호를 입력하세요"
           {...adminInputPW}
         />
+        <a href="/admin/signup">회원 가입</a>
 
         <div className="flex justify-center mt-6">
           <button
