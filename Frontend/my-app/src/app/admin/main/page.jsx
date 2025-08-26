@@ -11,7 +11,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     try {
       // 로컬스토리지에서 로그인된 사용자의 ID를 가져옵니다.
-      const loggedInUserId = localStorage.getItem("adminId");
+      const loggedInUserId = localStorage.getItem("loginId");
       const storedUsers = localStorage.getItem("users");
 
       if (loggedInUserId && storedUsers) {

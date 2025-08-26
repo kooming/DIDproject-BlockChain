@@ -11,6 +11,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
 import useInput from "../../hooks/useInput.jsx";
+import useAuth from "../../hooks/useAuth.jsx";
 
 export default function AdminSignUpPage() {
   const adminInputID = useInput("");
@@ -71,7 +72,7 @@ export default function AdminSignUpPage() {
     }
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     // 모든 에러 메시지 초기화
     setIdError("");
     setPasswordError("");
@@ -127,11 +128,12 @@ export default function AdminSignUpPage() {
     if (!isValid) {
       return;
     }
+    const hashedPassword = await useAuth(adminPWValue);
 
     // 로컬스토리지에 대기 중인 데이터로 저장
     const newPendingUser = {
       adminIdValue,
-      adminPWValue,
+      adminPWValue: hashedPassword,
       adminNameValue,
       adminCompanyValue,
       adminPhoneNumberValue,

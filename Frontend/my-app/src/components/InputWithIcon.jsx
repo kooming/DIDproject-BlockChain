@@ -1,32 +1,10 @@
-// components/InputWithIcon.jsx
 "use client";
 
 import React from "react";
-import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
+// FontAwesomeIcon 컴포넌트와 아이콘 정의를 가져옵니다.
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-// Font Awesome 아이콘을 SVG로 직접 사용하기 위한 유틸리티 함수
-// TypeScript 타입 정의가 제거되었습니다.
-const getIconSvg = (icon, className) => {
-  if (!icon || !icon.icon) {
-    console.error("Invalid icon object provided to getIconSvg:", icon);
-    return null;
-  }
-  const [width, height, , , svgPathData] = icon.icon;
-  return (
-    <svg
-      aria-hidden="true"
-      focusable="false"
-      data-prefix={icon.prefix}
-      data-icon={icon.iconName}
-      className={className}
-      role="img"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox={`0 0 ${width} ${height}`}
-    >
-      <path fill="currentColor" d={svgPathData}></path>
-    </svg>
-  );
-};
+// InputWithIcon 컴포넌트
 const InputWithIcon = ({
   id,
   label,
@@ -44,7 +22,8 @@ const InputWithIcon = ({
       </label>
       <div className="mt-1 relative rounded-md shadow-sm">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          {getIconSvg(icon, "h-5 w-5 text-gray-400")}
+          {/* FontAwesomeIcon 컴포넌트를 사용하여 아이콘 렌더링 */}
+          <FontAwesomeIcon icon={icon} className="h-5 w-5 text-gray-400" />
         </div>
         <input
           type={type}

@@ -1,83 +1,157 @@
 "use client";
 
-import React, { useState } from "react";
-// 상대 경로로 변경하여 import 경로 오류 해결
-import PasswordInput from "../../components/PasswordInput.jsx";
-import InputWithIcon from "../../components/InputWithIcon.jsx";
+import React, { useState, useEffect } from "react";
+import PasswordInput from "@/src/components/PasswordInput.jsx";
+import InputWithIcon from "@/src/components/InputWithIcon.jsx";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
+import useInput from "../hooks/useInput.jsx";
+import useAuth from "../hooks/useAuth.jsx";
+import ReusableAlert from "@/src/components/ReusableAlert.js";
 
 export default function AdminHomePage() {
-  // 상태 관리를 위한 useState 훅
-  const [adminId, setAdminId] = useState("");
-  const [password, setPassword] = useState("");
-
+  const adminInputID = useInput("");
+  const adminInputPW = useInput("");
   const router = useRouter();
+  const [alert, setAlert] = useState({ message: "", type: "" });
 
-  // 입력 필드 값 변경 핸들러
-  const handleAdminIdChange = (e) => {
-    setAdminId(e.target.value);
-  };
+  // useAuth hook to get the password hashing function.
+  const { hashPassword } = useAuth();
 
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-  };
+  // useEffect to create dummy data on page load.
+  useEffect(() => {
+    // Check if 'users' data exists in localStorage.
+    const existingUsers = localStorage.getItem("users");
 
-  // 로그인 버튼 클릭 핸들러
-  const handleLogin = () => {
-    // 로컬스토리지에서 사용자 데이터 가져오기
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    const user = users.find(
-      (user) => user.adminIdValue === adminId && user.adminPWValue === password
-    );
+    // Only run if 'users' data does not exist.
+    if (!existingUsers) {
+      const createDummyUsers = async () => {
+        // Hash the super admin password.
+        const superAdminHashedPW = await hashPassword("superadmin123!");
+        // Hash the regular admin password.
+        const regularAdminHashedPW = await hashPassword("regular123!");
 
-    if (user) {
-      localStorage.setItem("adminId", adminId);
-      router.push("./admin/main");
-    } else {
-      alert("아이디 또는 비밀번호가 올바르지 않습니다.");
+        // Create dummy user data.
+        const dummyUsers = [
+          {
+            adminIdValue: "superadmin",
+            adminPWValue: superAdminHashedPW,
+            type: "super_admin", // Add super admin type
+          },
+          {
+            adminIdValue: "adminuser",
+            adminPWValue: regularAdminHashedPW,
+            type: "regular_admin", // Add regular admin type
+          },
+        ];
+
+        // Save dummy data to localStorage.
+        localStorage.setItem("users", JSON.stringify(dummyUsers));
+        console.log("Dummy users created with hashed passwords.");
+      };
+
+      createDummyUsers();
+    }
+  }, []); // Empty array to run once when the component mounts.
+
+  // Login button click handler
+  const handleLogin = async () => {
+    const adminId = adminInputID.value;
+    const adminPW = adminInputPW.value;
+
+    if (!adminId || !adminPW) {
+      setAlert({
+        message: "아이디와 비밀번호를 모두 입력해주세요.",
+        type: "error",
+      });
+      setTimeout(() => setAlert({ message: "", type: "" }), 3000);
+      return;
+    }
+
+    try {
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      const user = users.find((u) => u.adminIdValue === adminId);
+
+      if (!user) {
+        setAlert({ message: "존재하지 않는 아이디입니다.", type: "error" });
+        setTimeout(() => setAlert({ message: "", type: "" }), 3000);
+        return;
+      }
+
+      const hashedPassword = await hashPassword(adminPW);
+
+      if (user.adminPWValue === hashedPassword) {
+        setAlert({ message: "로그인 성공!", type: "success" });
+        localStorage.setItem("loginId", adminId);
+        setTimeout(() => {
+          router.push("/admin/main");
+        }, 1500);
+      } else {
+        setAlert({ message: "비밀번호가 일치하지 않습니다.", type: "error" });
+        setTimeout(() => setAlert({ message: "", type: "" }), 3000);
+      }
+    } catch (e) {
+      console.error("로그인 처리 중 오류 발생:", e);
+      setAlert({
+        message: "로그인 처리 중 오류가 발생했습니다.",
+        type: "error",
+      });
+      setTimeout(() => setAlert({ message: "", type: "" }), 3000);
     }
   };
 
   return (
     <div className="container mx-auto p-8 bg-gray-50 min-h-screen">
+      <style>{`
+        .animate-fade-in-down {
+          animation: fadeInDown 0.5s ease-out;
+        }
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -20px);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, 0);
+          }
+        }
+      `}</style>
+      <ReusableAlert
+        message={alert.message}
+        type={alert.type}
+        onClose={() => setAlert({ message: "", type: "" })}
+      />
       <div className="rounded-xl shadow-lg p-8">
         <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-2">
           관리자 로그인
         </h1>
-        <h3 className="text-center">DID 수료증 관리 시스템</h3>
+        <h3 className="text-center text-gray-600 mb-8">
+          DID 수료증 관리 시스템
+        </h3>
+
         <InputWithIcon
           id="admin_id"
           label="관리자 아이디"
           icon={faUser}
-          placeholder=" 아이디를 입력하세요"
-          value={adminId}
-          onChange={handleAdminIdChange}
+          placeholder="아이디를 입력하세요"
+          {...adminInputID}
         />
-
         <PasswordInput
           id="password"
           label="비밀번호"
           placeholder="8자 이상의 비밀번호를 입력하세요"
-          value={password}
-          onChange={handlePasswordChange}
+          {...adminInputPW}
         />
 
-        <div className="flex justify-center ">
+        <div className="flex justify-center mt-6">
           <button
-            onClick={handleLogin} // onClick 핸들러 추가
-            type="submit"
-            className="mt-6 w-50 p-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition"
+            onClick={handleLogin}
+            className="w-full p-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition"
           >
             로그인
           </button>
         </div>
-        <a
-          href="./admin/signup"
-          className="no-underline transform hover:scale-105 transition-transform duration-300 text-inherit"
-        >
-          회원가입
-        </a>
       </div>
     </div>
   );
